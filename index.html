@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf=8">
+    <title>ルーレット</title>
+    <script>
+      const choice = [
+        "Al Fakher グレープフルーツ",
+        "Al Fakher ストロベリー",
+        "Al Fakher マンゴー",
+        "Al Fakher グレープ",
+        "Al Fakher グァバ",
+        "Al Fakher ピーチ",
+        "Al Fakher ダブルアップル",
+        "Al Fakher レモン",
+        "Al Fakher キウイ",
+        "Al Fakher プラム",
+        "Al Fakher ミント",
+        "Al Fakher アプリコット",
+        "Al Fakher バニラ",
+        "Al Fakher ハーベストムーン",
+        "Al Fakher メロン",
+        "Al Fakher ブルーベリー",
+        "Al Fakher チェリー",
+        "Al Fakher スイカ",
+        "Al Fakher オレンジ",
+        "Dozaj ジャスミン",
+        "Dozaj デッドシー",
+        "Dozaj グリーンティー",
+        "Dozaj リンデンティー",
+        "Dozaj ネスクイックリー",
+        "Dozaj ペア(洋梨)",
+        "Dozaj バジル",
+        "Dozaj ビスケット",
+        "Dozaj カルダモン",
+        "Dozaj グリーンミックス",
+        "Dozaj 柚",
+        "Dozaj ハニー",
+        "Dozaj アイス",
+        "Dozaj ブラックティー",
+        "Dozaj キャラメル",
+        "Dozaj ベルガモットティー",
+        "Bangbang ブルーベリー",
+        "Bangbang マスティックガム",
+        "Bangbang ココナッツ",
+        "Bangbang ピーチ",
+        "Bangbang マンゴー",
+        "Bangbang ザクロ",
+        "Bangbang チェリー",
+        "Al Amasi ハニーミルク",
+        "Al Amasi ゴールデンキウイ",
+        "Al Amasi ゴールデンオレンジ",
+        "Al Amasi バグダッドナイト",
+        "Al Amasi タイガシダー",
+        "Al Amasi ローズ",
+        "Al Amasi フィグ",
+        "Al Amasi グレープ",
+        "Al Amasi スーパーグァバ",
+        "Al Amasi コーラ",
+        "Al Amasi シナモン",
+        "Afzal ライチ",
+        "Afzal アールグレイ",
+        "Malaki レモン",
+        "Malaki ホワイトピーチ",
+        "Golden Layalina BTS",
+        "Golden Layalina ブルーヘヴン",
+        "Al Waha パンラズナ",
+        "De Cloud アーモンド",
+        "De Cloud アールグレイ",
+        "De Cloud レモングラス",
+        "De Cloud ブルーベリー",
+        "De Cloud レモン",
+        "De Cloud グァバ",
+        "De Cloud ライチ",
+        "De Cloud ジャスミン",
+        "De Cloud ストロベリー",
+        "De Cloud キウイ",
+        "De Cloud プラム",
+        "De Cloud 抹茶",
+        "Darkside ダークスープラ",
+        "Darkside コスモス",
+        "Darkside ダークサイドコーラ",
+        "Darkside コスモフラワー",
+        "Darkside ニードルズ",
+        "Darkside クリームソーダ",
+        "Dozaj Black ジャマイカンラム",
+      ];
+
+      let rotateId = null;
+
+      function pick() {
+        return choice[Math.floor(Math.random() * choice.length)];
+      }
+
+      function rotate() {
+        let f = document.querySelector("#f");
+        let ne = document.querySelector("#n");
+        let n = parseInt(ne.options[ne.selectedIndex].text);
+        let arr = [];
+
+        for (let i = 0; i < n; i++) {
+          arr.push(pick());
+        }
+
+        f.innerHTML = arr.join("<br/>");
+      }
+
+      function onRotate() {
+        if (!!rotateId) {
+          return;
+        }
+
+        rotateId = setInterval(rotate, 50);
+      }
+
+      function onStop() {
+        if (!rotateId) {
+          return;
+        }
+
+        clearInterval(rotateId);
+        rotateId = null;
+      }
+    </script>
+  </head>
+
+  <body>
+    <div>
+      <h1 style="margin-bottom: 10px">シーシャルーレット</h1>
+      <h2 id="f">???</h2>
+    </div>
+    <div>
+      <select id="n">
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+      </select>
+      <button onclick="onRotate()">スタート</button>
+      <button onclick="onStop()">ストップ</button>
+    </div>
+  </body>
+</html>
