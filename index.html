@@ -88,19 +88,24 @@
 
       let rotateId = null;
 
-      function pick() {
-        return choice[Math.floor(Math.random() * choice.length)];
+      function pick(n) {
+        const shuffled = choice.slice();
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled.slice(0, n);
       }
 
       function rotate() {
         let f = document.querySelector("#f");
         let ne = document.querySelector("#n");
         let n = parseInt(ne.options[ne.selectedIndex].text);
-        let arr = [];
+        let arr = Array(4).fill("&nbsp");
 
-        for (let i = 0; i < n; i++) {
-          arr.push(pick());
-        }
+        pick(n).forEach((e, i) => {
+          arr[i] = e;
+        })
 
         f.innerHTML = arr.join("<br/>");
       }
