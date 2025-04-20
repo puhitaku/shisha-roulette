@@ -45,8 +45,16 @@
       function rotate() {
         let f = document.querySelector("#f");
         let ne = document.querySelector("#n");
-        let n = parseInt(ne.options[ne.selectedIndex].text);
         let arr = Array(4).fill("&nbsp");
+
+        const ns = ne.options[ne.selectedIndex].text;
+        let n;
+
+        if (ns === "ランダム") {
+          n = Math.ceil(Math.random() * 3);
+        } else {
+          n = parseInt(ns);
+        }
 
         pick(n).forEach((e, i) => {
           arr[i] = e;
@@ -92,9 +100,11 @@
       <div>
         <label for="n">フレーバー数:</label>
         <select id="n">
+          <option>1</option>
           <option>2</option>
           <option>3</option>
           <option>4</option>
+          <option>ランダム</option>
         </select>
       </div>
       <div>
