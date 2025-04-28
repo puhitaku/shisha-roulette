@@ -71,7 +71,7 @@
           n = parseInt(ns);
         }
 
-        pick(n).forEach((flavor, i) => {
+        pick(n).toSorted().forEach((flavor, i) => {
           arr[i] = `${flavor.brand} ${flavor.name}`;
         })
 
