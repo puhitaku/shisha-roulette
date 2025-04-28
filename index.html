@@ -7,6 +7,7 @@
     <script>
       let shops = null;
       let choices = null;
+      let brands = null;
       let rotateId = null;
 
       class Flavor {
@@ -80,19 +81,31 @@
       function onSelectingShop() {
         onStop();
         document.querySelector('#f').innerHTML = "???<br/>???<br/>???<br/>???";
+        brands = null;
+      }
+
+      function getCurrentShop() {
+        const se = document.querySelector("#shop");
+        const s = parseInt(se.options[se.selectedIndex].value);
+        return shops[s];
       }
 
       function onRotate() {
-        const se = document.querySelector("#shop");
-        const s = parseInt(se.options[se.selectedIndex].value);
-        choices = shops[s].flavors;
+        choices = [];
+        getCurrentShop().flavors.forEach(flavor => {
+          if (!!brands) {
+            if (!brands.has(flavor.brand)) {
+              return;
+            }
+          }
+          choices.push(flavor);
+        });
 
         if (!!rotateId) {
           return;
         }
 
         rotateId = setInterval(rotate, 50);
-        se.addEventListener('change', onSelectingShop);
       }
 
       function onStop() {
@@ -103,34 +116,69 @@
         clearInterval(rotateId);
         rotateId = null;
       }
+
+      function openBrandsDialog() {
+        const shop = getCurrentShop();
+        const uniqueBrands = [...new Set(shop.flavors.map(f => f.brand))];
+        const brandsElem = document.querySelector('#brands');
+
+        onStop();
+
+        brandsElem.innerHTML = uniqueBrands
+          .map(b => `<label><input type="checkbox" name="brand" value="${b}" ${brands === null || (!!brands && brands.has(b)) ? "checked" : ""}> ${b}</label>`)
+          .join('<br>');
+
+        document.querySelector('#brands-dialog').showModal();
+      }
+
+      function closeBrandsDialog() {
+        brands = new Set(Array.from(document.querySelectorAll('input[name="brand"]:checked'), el => el.value));
+        console.debug(brands);
+        document.querySelector('#brands-dialog').close();
+      }
     </script>
   </head>
 
   <body>
-    <h1>シーシャルーレット</h1>
-    <div id="loading">
-      <h2>読み込み中…</h2>
+    <div style="max-width: 768px;">
+      <h1>シーシャルーレット</h1>
+      <div id="loading">
+        <h2>読み込み中…</h2>
+      </div>
+      <div id="roulette" style="display: none;">
+        <p id="f">???<br/>???<br/>???<br/>???</p>
+        <div style="display: flex">
+          <div style="flex-shrink: 0; margin-right: 10px;">
+            <label for="shop" style="display: block; padding-bottom: 4px; height: 20px;">店舗</label>
+            <label for="n" style="display: block; padding-bottom: 4px; height: 20px;">フレーバー数</label>
+            <label for="open-brands" style="display: block; padding-bottom: 4px; height: 20px;">フレーバーブランド</label>
+          </div>
+          <div style="flex-shrink: 1;">
+            <select id="shop" onchange="onSelectingShop()" style="display: block; height: 22px; margin-bottom: 2px; width: 100%;"></select>
+            <select id="n" style="display: block; height: 22px; margin-bottom: 2px;">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>ランダム</option>
+            </select>
+            <button id="open-brands" onclick="openBrandsDialog()" style="display: block; font-size: 10px; height: 22px; margin-bottom: 2px;">選択</button>
+          </div>
+        </div>
+        <div style="display: flex; height: 64px; padding: 10px 0;">
+          <button onclick="onRotate()" style="flex-grow: 1; margin: 10px; font-size: 1.25rem;">スタート</button>
+          <button onclick="onStop()" style="flex-grow: 1; margin: 10px; font-size: 1.25rem;">ストップ</button>
+        </div>
+      </div>
     </div>
-    <div id="roulette" style="display: none;">
-      <p id="f">???<br/>???<br/>???<br/>???</p>
-      <div>
-        <label for="shop">店舗:</label>
-        <select id="shop"></select>
+
+    <dialog id="brands-dialog" style="position: absolute; top: 0; width: 100%; height: 100%; padding: 0; border: none; background-color: transparent;">
+      <div style="margin: 16px; padding: 8px; border: 1px solid #777; border-radius: 3px; background-color: white;">
+        <p style="font-weight: bolder;">フレーバーブランド選択</p>
+        <p style="font-size: 0.75rem;">ルーレットに含みたいフレーバーのブランドにチェックを入れてください。</p>
+        <div id="brands" style="margin-bottom: 16px; font-size: 0.75rem;"></div>
+        <button onclick="closeBrandsDialog()" style="width: 100%;">閉じる</button>
       </div>
-      <div>
-        <label for="n">フレーバー数:</label>
-        <select id="n">
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>ランダム</option>
-        </select>
-      </div>
-      <div>
-        <button onclick="onRotate()">スタート</button>
-        <button onclick="onStop()">ストップ</button>
-      </div>
-    </div>
+    </dialog>
   </body>
 </html>
