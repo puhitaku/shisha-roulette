@@ -41,8 +41,8 @@
             document.querySelector("#shop").appendChild(option);
           })
 
-          document.querySelector("#loading").setAttribute("style", "display: none;");
-          document.querySelector("#roulette").removeAttribute("style");
+          document.querySelector("#loading").hidden = true;
+          document.querySelector("#roulette").hidden = false;
         })
         .catch(error => {
           console.error('Fetch error:', error);
@@ -137,47 +137,139 @@
         document.querySelector('#brands-dialog').close();
       }
     </script>
+    <style>
+      #container {
+          max-width: 768px;
+      }
+
+      h1 {
+          text-align: center;
+      }
+
+      #f {
+          margin-bottom: 21px;
+          text-align: center;
+      }
+
+      #config {
+          display: flex;
+
+          #config-keys {
+              flex-shrink: 0;
+              margin-right: 10px;
+
+              label {
+                  display: block;
+                  padding-bottom: 4px;
+                  height: 20px;
+              }
+          }
+
+          #config-values {
+              #shop, #n, #open-brands {
+                  display: block;
+                  height: 22px;
+                  margin-bottom: 2px;
+              }
+
+              #shop {
+                  width: 100%;
+              }
+
+              #open-brands {
+                  font-size: 10px;
+              }
+          }
+      }
+
+      #lets-roll {
+          display: flex;
+          height: 64px;
+          padding: 10px 0;
+
+          button {
+              flex-grow: 1;
+              margin: 10px;
+              font-size: 1.25rem;
+          }
+      }
+
+      #brands-dialog {
+          position: absolute;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          padding: 0;
+          border: none;
+          background-color: transparent;
+
+          > div {
+              margin: 16px;
+              padding: 8px;
+              border: 1px solid #777;
+              border-radius: 3px;
+              background-color: white;
+          }
+
+          h1 {
+              font-size: 1rem;
+          }
+
+          p {
+              font-size: 0.75rem;
+          }
+
+          #brands {
+              margin-bottom: 16px;
+              font-size: 0.75rem;
+          }
+
+          button {
+              width: 100%;
+          }
+      }
+    </style>
   </head>
 
   <body>
-    <div style="max-width: 768px;">
+    <div id="container">
       <h1>シーシャルーレット</h1>
       <div id="loading">
         <h2>読み込み中…</h2>
       </div>
-      <div id="roulette" style="display: none;">
+      <div id="roulette" hidden>
         <p id="f">???<br/>???<br/>???<br/>???</p>
-        <div style="display: flex">
-          <div style="flex-shrink: 0; margin-right: 10px;">
-            <label for="shop" style="display: block; padding-bottom: 4px; height: 20px;">店舗</label>
-            <label for="n" style="display: block; padding-bottom: 4px; height: 20px;">フレーバー数</label>
-            <label for="open-brands" style="display: block; padding-bottom: 4px; height: 20px;">フレーバーブランド</label>
+        <div id="config">
+          <div id="config-keys">
+            <label for="shop">店舗</label>
+            <label for="n">フレーバー数</label>
+            <label for="open-brands">フレーバーブランド</label>
           </div>
-          <div style="flex-shrink: 1;">
-            <select id="shop" onchange="onSelectingShop()" style="display: block; height: 22px; margin-bottom: 2px; width: 100%;"></select>
-            <select id="n" style="display: block; height: 22px; margin-bottom: 2px;">
+          <div id="config-values">
+            <select id="shop" onchange="onSelectingShop()"></select>
+            <select id="n">
               <option>1</option>
               <option>2</option>
               <option>3</option>
               <option>4</option>
               <option>ランダム</option>
             </select>
-            <button id="open-brands" onclick="openBrandsDialog()" style="display: block; font-size: 10px; height: 22px; margin-bottom: 2px;">選択</button>
+            <button id="open-brands" onclick="openBrandsDialog()">選択</button>
           </div>
         </div>
-        <div style="display: flex; height: 64px; padding: 10px 0;">
-          <button onclick="onRotate()" style="flex-grow: 1; margin: 10px; font-size: 1.25rem;">スタート</button>
-          <button onclick="onStop()" style="flex-grow: 1; margin: 10px; font-size: 1.25rem;">ストップ</button>
+        <div id="lets-roll">
+          <button onclick="onRotate()">スタート</button>
+          <button onclick="onStop()">ストップ</button>
         </div>
       </div>
     </div>
 
-    <dialog id="brands-dialog" style="position: absolute; top: 0; width: 100%; height: 100%; padding: 0; border: none; background-color: transparent;">
-      <div style="margin: 16px; padding: 8px; border: 1px solid #777; border-radius: 3px; background-color: white;">
-        <p style="font-weight: bolder;">フレーバーブランド選択</p>
-        <p style="font-size: 0.75rem;">ルーレットに含みたいフレーバーのブランドにチェックを入れてください。</p>
-        <div id="brands" style="margin-bottom: 16px; font-size: 0.75rem;"></div>
-        <button onclick="closeBrandsDialog()" style="width: 100%;">閉じる</button>
+    <dialog id="brands-dialog">
+      <div>
+        <h1>フレーバーブランド選択</h1>
+        <p>ルーレットに含みたいブランドにチェックを入れてください。</p>
+        <div id="brands"></div>
+        <button onclick="closeBrandsDialog()">閉じる</button>
       </div>
     </dialog>
   </body>
