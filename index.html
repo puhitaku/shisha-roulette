@@ -77,6 +77,11 @@
         f.innerHTML = arr.join("<br/>");
       }
 
+      function onSelectingShop() {
+        onStop();
+        document.querySelector('#f').innerHTML = "???<br/>???<br/>???<br/>???";
+      }
+
       function onRotate() {
         const se = document.querySelector("#shop");
         const s = parseInt(se.options[se.selectedIndex].value);
@@ -87,6 +92,7 @@
         }
 
         rotateId = setInterval(rotate, 50);
+        se.addEventListener('change', onSelectingShop);
       }
 
       function onStop() {
