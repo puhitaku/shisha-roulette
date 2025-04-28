@@ -7,6 +7,21 @@
     <script>
       let shops = null;
       let choices = null;
+      let rotateId = null;
+
+      class Flavor {
+        constructor({brand, name}) {
+          this.brand = brand;
+          this.name  = name;
+        }
+      }
+
+      class Shop {
+        constructor({shopName, flavors}) {
+          this.name = shopName;
+          this.flavors  = flavors.map(f => new Flavor(f));
+        }
+      }
 
       fetch('./shops.json')
         .then(response => {
@@ -14,25 +29,23 @@
           return response.json();
         })
         .then(j => {
-          j.forEach((e, i) => {
-            console.log(`店舗: ${e.shopName}`)
+          shops = j.map(e => new Shop(e));
+
+          shops.forEach((shop, i) => {
+            console.debug(`店舗: ${shop.name}`)
 
             const option = document.createElement("option");
             option.value = i;
-            option.textContent = e.shopName;
+            option.textContent = shop.name;
             document.querySelector("#shop").appendChild(option);
           })
 
           document.querySelector("#loading").setAttribute("style", "display: none;");
           document.querySelector("#roulette").removeAttribute("style");
-
-          shops = j;
         })
         .catch(error => {
           console.error('Fetch error:', error);
         });
-
-      let rotateId = null;
 
       function pick(n) {
         const shuffled = choices.slice();
@@ -57,8 +70,8 @@
           n = parseInt(ns);
         }
 
-        pick(n).forEach((e, i) => {
-          arr[i] = e;
+        pick(n).forEach((flavor, i) => {
+          arr[i] = `${flavor.brand} ${flavor.name}`;
         })
 
         f.innerHTML = arr.join("<br/>");
@@ -93,7 +106,7 @@
       <h2>読み込み中…</h2>
     </div>
     <div id="roulette" style="display: none;">
-      <h2 id="f">???<br/>???<br/>???<br/>???</h2>
+      <p id="f">???<br/>???<br/>???<br/>???</p>
       <div>
         <label for="shop">店舗:</label>
         <select id="shop"></select>
