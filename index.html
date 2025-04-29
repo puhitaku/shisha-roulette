@@ -1,292 +1,292 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ルーレット</title>
-    <script>
-      let shops = null;
-      let choices = null;
-      let brands = null;
-      let rotateId = null;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ルーレット</title>
+  <script>
+    let shops = null;
+    let choices = null;
+    let brands = null;
+    let rotateId = null;
 
-      class Flavor {
-        constructor({brand, name}) {
-          this.brand = brand;
-          this.name  = name;
-        }
+    class Flavor {
+      constructor({brand, name}) {
+        this.brand = brand;
+        this.name = name;
       }
+    }
 
-      class Shop {
-        constructor({shopName, flavors}) {
-          this.name = shopName;
-          this.flavors  = flavors.map(f => new Flavor(f));
-        }
+    class Shop {
+      constructor({shopName, flavors}) {
+        this.name = shopName;
+        this.flavors = flavors.map(f => new Flavor(f));
       }
+    }
 
-      fetch('./shops.json')
-        .then(response => {
-          if (!response.ok) throw new Error('HTTP error ' + response.status);
-          return response.json();
-        })
-        .then(j => {
-          shops = j.map(e => new Shop(e));
+    fetch('./shops.json')
+      .then(response => {
+        if (!response.ok) throw new Error('HTTP error ' + response.status);
+        return response.json();
+      })
+      .then(j => {
+        shops = j.map(e => new Shop(e));
 
-          shops.forEach((shop, i) => {
-            console.debug(`店舗: ${shop.name}`)
+        shops.forEach((shop, i) => {
+          console.debug(`店舗: ${shop.name}`)
 
-            const option = document.createElement("option");
-            option.value = i;
-            option.textContent = shop.name;
-            document.querySelector("#shop").appendChild(option);
-          })
-
-          document.querySelector("#loading").hidden = true;
-          document.querySelector("#roulette").hidden = false;
-        })
-        .catch(error => {
-          console.error('Fetch error:', error);
-        });
-
-      function pick(n) {
-        const shuffled = choices.slice();
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled.slice(0, n);
-      }
-
-      function rotate() {
-        let f = document.querySelector("#f");
-        let ne = document.querySelector("#n");
-        let arr = Array(4).fill("&nbsp");
-
-        const ns = ne.options[ne.selectedIndex].text;
-        let n;
-
-        if (ns === "ランダム") {
-          n = Math.ceil(Math.random() * 3);
-        } else {
-          n = parseInt(ns);
-        }
-
-        pick(n).toSorted().forEach((flavor, i) => {
-          arr[i] = `${flavor.brand} ${flavor.name}`;
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = shop.name;
+          document.querySelector("#shop").appendChild(option);
         })
 
-        f.innerHTML = arr.join("<br/>");
+        document.querySelector("#loading").hidden = true;
+        document.querySelector("#roulette").hidden = false;
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+      });
+
+    function pick(n) {
+      const shuffled = choices.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, n);
+    }
+
+    function rotate() {
+      let f = document.querySelector("#f");
+      let ne = document.querySelector("#n");
+      let arr = Array(4).fill("&nbsp");
+
+      const ns = ne.options[ne.selectedIndex].text;
+      let n;
+
+      if (ns === "ランダム") {
+        n = Math.ceil(Math.random() * 3);
+      } else {
+        n = parseInt(ns);
       }
 
-      function onSelectingShop() {
-        onStop();
-        document.querySelector('#f').innerHTML = "???<br/>???<br/>???<br/>???";
-        brands = null;
-      }
+      pick(n).toSorted().forEach((flavor, i) => {
+        arr[i] = `${flavor.brand} ${flavor.name}`;
+      })
 
-      function getCurrentShop() {
-        const se = document.querySelector("#shop");
-        const s = parseInt(se.options[se.selectedIndex].value);
-        return shops[s];
-      }
+      f.innerHTML = arr.join("<br/>");
+    }
 
-      function onRotate() {
-        choices = [];
-        getCurrentShop().flavors.forEach(flavor => {
-          if (!!brands) {
-            if (!brands.has(flavor.brand)) {
-              return;
-            }
+    function onSelectingShop() {
+      onStop();
+      document.querySelector('#f').innerHTML = "???<br/>???<br/>???<br/>???";
+      brands = null;
+    }
+
+    function getCurrentShop() {
+      const se = document.querySelector("#shop");
+      const s = parseInt(se.options[se.selectedIndex].value);
+      return shops[s];
+    }
+
+    function onRotate() {
+      choices = [];
+      getCurrentShop().flavors.forEach(flavor => {
+        if (!!brands) {
+          if (!brands.has(flavor.brand)) {
+            return;
           }
-          choices.push(flavor);
-        });
+        }
+        choices.push(flavor);
+      });
 
-        if (!!rotateId) {
-          return;
+      if (!!rotateId) {
+        return;
+      }
+
+      rotateId = setInterval(rotate, 50);
+    }
+
+    function onStop() {
+      if (!rotateId) {
+        return;
+      }
+
+      clearInterval(rotateId);
+      rotateId = null;
+    }
+
+    function openBrandsDialog() {
+      const shop = getCurrentShop();
+      const uniqueBrands = [...new Set(shop.flavors.map(f => f.brand))];
+      const brandsElem = document.querySelector('#brands');
+
+      onStop();
+
+      brandsElem.innerHTML = uniqueBrands
+        .map(b => `<label><input type="checkbox" name="brand" value="${b}" ${brands === null || (!!brands && brands.has(b)) ? "checked" : ""}> ${b}</label>`)
+        .join('<br>');
+
+      document.querySelector('#brands-dialog').showModal();
+    }
+
+    function closeBrandsDialog() {
+      brands = new Set(Array.from(document.querySelectorAll('input[name="brand"]:checked'), el => el.value));
+      console.debug(brands);
+      document.querySelector('#brands-dialog').close();
+    }
+  </script>
+  <style>
+    #container {
+      max-width: 768px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #f {
+      margin-bottom: 21px;
+      text-align: center;
+    }
+
+    #config {
+      display: flex;
+
+      #config-keys {
+        flex-shrink: 0;
+        margin-right: 10px;
+
+        label {
+          display: block;
+          padding-bottom: 4px;
+          height: 20px;
+        }
+      }
+
+      #config-values {
+        #shop, #n, #open-brands {
+          display: block;
+          height: 22px;
+          margin-bottom: 2px;
         }
 
-        rotateId = setInterval(rotate, 50);
-      }
-
-      function onStop() {
-        if (!rotateId) {
-          return;
+        #shop {
+          width: 100%;
         }
 
-        clearInterval(rotateId);
-        rotateId = null;
+        #open-brands {
+          font-size: 10px;
+        }
       }
+    }
 
-      function openBrandsDialog() {
-        const shop = getCurrentShop();
-        const uniqueBrands = [...new Set(shop.flavors.map(f => f.brand))];
-        const brandsElem = document.querySelector('#brands');
+    #lets-roll {
+      display: flex;
+      height: 64px;
+      padding: 10px 0;
 
-        onStop();
-
-        brandsElem.innerHTML = uniqueBrands
-          .map(b => `<label><input type="checkbox" name="brand" value="${b}" ${brands === null || (!!brands && brands.has(b)) ? "checked" : ""}> ${b}</label>`)
-          .join('<br>');
-
-        document.querySelector('#brands-dialog').showModal();
+      button {
+        flex-grow: 1;
+        margin: 10px;
+        font-size: 1.25rem;
       }
+    }
 
-      function closeBrandsDialog() {
-        brands = new Set(Array.from(document.querySelectorAll('input[name="brand"]:checked'), el => el.value));
-        console.debug(brands);
-        document.querySelector('#brands-dialog').close();
+    #credit {
+      p {
+        width: 100%;
+        text-align: center;
+        font-size: 0.75rem;
+        line-height: 75%;
+
+        a {
+          text-decoration: none;
+        }
       }
-    </script>
-    <style>
-      #container {
-          max-width: 768px;
+    }
+
+    #brands-dialog {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: none;
+      background-color: transparent;
+
+      > div {
+        margin: 16px;
+        padding: 8px;
+        border: 1px solid #777;
+        border-radius: 3px;
+        background-color: white;
       }
 
       h1 {
-          text-align: center;
+        font-size: 1rem;
       }
 
-      #f {
-          margin-bottom: 21px;
-          text-align: center;
+      p {
+        font-size: 0.75rem;
       }
 
-      #config {
-          display: flex;
-
-          #config-keys {
-              flex-shrink: 0;
-              margin-right: 10px;
-
-              label {
-                  display: block;
-                  padding-bottom: 4px;
-                  height: 20px;
-              }
-          }
-
-          #config-values {
-              #shop, #n, #open-brands {
-                  display: block;
-                  height: 22px;
-                  margin-bottom: 2px;
-              }
-
-              #shop {
-                  width: 100%;
-              }
-
-              #open-brands {
-                  font-size: 10px;
-              }
-          }
+      #brands {
+        margin-bottom: 16px;
+        font-size: 0.75rem;
       }
 
-      #lets-roll {
-          display: flex;
-          height: 64px;
-          padding: 10px 0;
-
-          button {
-              flex-grow: 1;
-              margin: 10px;
-              font-size: 1.25rem;
-          }
+      button {
+        width: 100%;
       }
+    }
+  </style>
+</head>
 
-      #credit {
-          p {
-            width: 100%;
-            text-align: center;
-            font-size: 0.75rem;
-            line-height: 75%;
-
-            a {
-                text-decoration: none;
-            }
-          }
-      }
-
-      #brands-dialog {
-          position: absolute;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          padding: 0;
-          border: none;
-          background-color: transparent;
-
-          > div {
-              margin: 16px;
-              padding: 8px;
-              border: 1px solid #777;
-              border-radius: 3px;
-              background-color: white;
-          }
-
-          h1 {
-              font-size: 1rem;
-          }
-
-          p {
-              font-size: 0.75rem;
-          }
-
-          #brands {
-              margin-bottom: 16px;
-              font-size: 0.75rem;
-          }
-
-          button {
-              width: 100%;
-          }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div id="container">
-      <h1>シーシャルーレット</h1>
-      <div id="loading">
-        <h2>読み込み中…</h2>
+<body>
+<div id="container">
+  <h1>シーシャルーレット</h1>
+  <div id="loading">
+    <h2>読み込み中…</h2>
+  </div>
+  <div id="roulette" hidden>
+    <p id="f">???<br/>???<br/>???<br/>???</p>
+    <div id="config">
+      <div id="config-keys">
+        <label for="shop">店舗</label>
+        <label for="n">フレーバー数</label>
+        <label for="open-brands">フレーバーブランド</label>
       </div>
-      <div id="roulette" hidden>
-        <p id="f">???<br/>???<br/>???<br/>???</p>
-        <div id="config">
-          <div id="config-keys">
-            <label for="shop">店舗</label>
-            <label for="n">フレーバー数</label>
-            <label for="open-brands">フレーバーブランド</label>
-          </div>
-          <div id="config-values">
-            <select id="shop" onchange="onSelectingShop()"></select>
-            <select id="n">
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-              <option>4</option>
-              <option>ランダム</option>
-            </select>
-            <button id="open-brands" onclick="openBrandsDialog()">選択</button>
-          </div>
-        </div>
-        <div id="lets-roll">
-          <button onclick="onRotate()">スタート</button>
-          <button onclick="onStop()">ストップ</button>
-        </div>
-      </div>
-      <div id="credit">
-        <p>Made by <a href="https://github.com/puhitaku">Takumi Sueda</a> | <a href="https://github.com/puhitaku/shisha-roulette">Source code</a></div>
+      <div id="config-values">
+        <select id="shop" onchange="onSelectingShop()"></select>
+        <select id="n">
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>ランダム</option>
+        </select>
+        <button id="open-brands" onclick="openBrandsDialog()">選択</button>
       </div>
     </div>
+    <div id="lets-roll">
+      <button onclick="onRotate()">スタート</button>
+      <button onclick="onStop()">ストップ</button>
+    </div>
+  </div>
+  <div id="credit">
+    <p>Made by <a href="https://github.com/puhitaku">Takumi Sueda</a> | <a
+      href="https://github.com/puhitaku/shisha-roulette">Source code</a></div>
+</div>
 
-    <dialog id="brands-dialog">
-      <div>
-        <h1>フレーバーブランド選択</h1>
-        <p>ルーレットに含みたいブランドにチェックを入れてください。</p>
-        <div id="brands"></div>
-        <button onclick="closeBrandsDialog()">閉じる</button>
-      </div>
-    </dialog>
-  </body>
+<dialog id="brands-dialog">
+  <div>
+    <h1>フレーバーブランド選択</h1>
+    <p>ルーレットに含みたいブランドにチェックを入れてください。</p>
+    <div id="brands"></div>
+    <button onclick="closeBrandsDialog()">閉じる</button>
+  </div>
+</dialog>
+</body>
 </html>
