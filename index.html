@@ -138,12 +138,18 @@
     }
   </script>
   <style>
+    @property --global-width {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 640px; <!-- sm 40rem -->
+    }
+
     h1 {
       text-align: center;
     }
 
     #container {
-      max-width: 768px;
+      max-width: var(--global-width);
     }
 
     #f {
@@ -208,7 +214,7 @@
     #brands-dialog {
       position: absolute;
       top: 0;
-      width: 100%;
+      max-width: var(--global-width);
       height: 100%;
       padding: 0;
       border: none;
