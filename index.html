@@ -106,6 +106,21 @@
 
           // Note: flavor list check/unchecks will be restored when opening the dialog
 
+          // Click the background of the brands dialog to close it
+          const dialog = document.querySelector('#brands-dialog');
+          dialog.addEventListener('click', event => {
+            const rect = dialog.querySelector('div').getBoundingClientRect();
+            const isInDialog = (
+              rect.top <= event.clientY &&
+              event.clientY <= rect.top + rect.height &&
+              rect.left <= event.clientX &&
+              event.clientX <= rect.left + rect.width
+            );
+            if (!isInDialog) {
+              dialog.close();
+            }
+          })
+
           // Show the hidden UI
           document.querySelector("#loading").hidden = true;
           document.querySelector("#roulette").hidden = false;
