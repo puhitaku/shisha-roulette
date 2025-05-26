@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ルーレット</title>
   <script>
+    // Class declarations
+
     class Config {
       constructor() {
         this.shop = 0;
@@ -13,7 +15,7 @@
         this.version = null;
       }
 
-      load(j) {
+      cast(j) {
         this.shop = j.shop;
         this.n = j.n;
         this.brands = j.brands;
@@ -22,6 +24,10 @@
 
        save() {
          localStorage.setItem('config', JSON.stringify(this));
+       }
+
+       currentlySelectedBrands() {
+         return config.brands[config.shop];
        }
     }
 
@@ -46,10 +52,20 @@
       }
     }
 
+    // Class getter shorthands
+
+    function getCurrentShop() {
+      return shops.shops[config.shop];
+    }
+
+    // Global state
+
     let config = new Config();
     let shops = null;
     let choices = null;
     let rotateId = null;
+
+    // Initialization (load shops.json and config)
 
     window.addEventListener('load', () => {
       fetch('./shops.json')
@@ -59,7 +75,6 @@
         })
         .then(j => {
           // Load the fetched JSON into shops var
-          //shops = j.map(e => new Shop(e));
           shops = new Shops(j);
 
           shops.shops.forEach((shop, i) => {
@@ -75,7 +90,7 @@
           // Invalidate the config if shop list has been updated.
           const c = JSON.parse(localStorage.getItem('config'));
           if (c !== null && !!c.version && c.version === shops.version) {
-            config.load(c);
+            config.cast(c);
           } else {
             config.version = shops.version;
             config.save();
@@ -100,37 +115,9 @@
         });
     });
 
-    function pick(n) {
-      const shuffled = choices.slice();
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled.slice(0, n);
-    }
+    // DOM event handlers
 
-    function rotate() {
-      let f = document.querySelector("#f");
-      let ne = document.querySelector("#n");
-      let arr = Array(4).fill("&nbsp");
-
-      const ns = ne.options[ne.selectedIndex].text;
-      let n;
-
-      if (ns === "ランダム") {
-        n = Math.ceil(Math.random() * 4);
-      } else {
-        n = parseInt(ns);
-      }
-
-      pick(n).toSorted().forEach((flavor, i) => {
-        arr[i] = `${flavor.brand} ${flavor.name}`;
-      })
-
-      f.innerHTML = arr.join("<br/>");
-    }
-
-    function onSelectingShop() {
+    function onSelectShop() {
       onStop();
       document.querySelector('#f').innerHTML = "???<br/>???<br/>???<br/>???";
 
@@ -139,7 +126,7 @@
       config.save();
     }
 
-    function onSelectingN() {
+    function onSelectN() {
       const n = document.querySelector("#n");
       config.n = n.selectedIndex;
       config.save();
@@ -147,9 +134,9 @@
 
     function onRotate() {
       choices = [];
-      if (!!config.brands[config.shop]) {
+      if (!!config.currentlySelectedBrands()) {
         const shop = getCurrentShop();
-        config.brands[config.shop].forEach(brand => {
+        config.currentlySelectedBrands().forEach(brand => {
           shop.flavors.forEach(flavor => {
             if (flavor.brand === brand) {
               choices.push(flavor);
@@ -164,6 +151,33 @@
         return;
       }
 
+      const rotate = () => {
+        let f = document.querySelector("#f");
+        let ne = document.querySelector("#n");
+        let arr = Array(4).fill("&nbsp");
+
+        const ns = ne.options[ne.selectedIndex].text;
+        let n;
+
+        if (ns === "ランダム") {
+          n = Math.ceil(Math.random() * 4);
+        } else {
+          n = parseInt(ns);
+        }
+
+        const shuffled = choices.slice();
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        shuffled.slice(0, n).toSorted().forEach((flavor, i) => {
+          arr[i] = `${flavor.brand} ${flavor.name}`;
+        })
+
+        f.innerHTML = arr.join("<br/>");
+      }
+
       rotateId = setInterval(rotate, 50);
     }
 
@@ -176,7 +190,7 @@
       rotateId = null;
     }
 
-    function openBrandsDialog() {
+    function onOpenBrands() {
       const shop = getCurrentShop();
       const uniqueBrands = [...new Set(shop.flavors.map(f => f.brand))];
       const brandsElem = document.querySelector('#brands');
@@ -185,8 +199,8 @@
 
       brandsElem.innerHTML = uniqueBrands
         .map(b => {
-          const firstPick = config.brands[config.shop] == null;
-          const pickedByUser = !firstPick && config.brands[config.shop].includes(b);
+          const firstPick = config.currentlySelectedBrands() == null;
+          const pickedByUser = !firstPick && config.currentlySelectedBrands().includes(b);
           const checked = firstPick || pickedByUser ? "checked" : "";
           return `<label><input type="checkbox" name="brand" value="${b}" ${checked}> ${b}</label>`
         })
@@ -195,17 +209,12 @@
       document.querySelector('#brands-dialog').showModal();
     }
 
-    function closeBrandsDialog() {
+    function onCloseBrands() {
       config.brands[config.shop] = Array.from(new Set(Array.from(document.querySelectorAll('input[name="brand"]:checked'), el => el.value)));
       config.save();
       console.debug(config.brands);
       document.querySelector('#brands-dialog').close();
     }
-
-    function getCurrentShop() {
-      return shops.shops[config.shop];
-    }
-
   </script>
   <style>
     @property --global-width {
@@ -333,15 +342,15 @@
         <label for="open-brands">フレーバーブランド</label>
       </div>
       <div id="config-values">
-        <select id="shop" onchange="onSelectingShop()"></select>
-        <select id="n" onchange="onSelectingN()">
+        <select id="shop" onchange="onSelectShop()"></select>
+        <select id="n" onchange="onSelectN()">
           <option>1</option>
           <option>2</option>
           <option>3</option>
           <option>4</option>
           <option>ランダム</option>
         </select>
-        <button id="open-brands" onclick="openBrandsDialog()">選択</button>
+        <button id="open-brands" onclick="onOpenBrands()">選択</button>
       </div>
     </div>
     <div id="lets-roll">
@@ -364,7 +373,7 @@
     <h1>フレーバーブランド選択</h1>
     <p>ルーレットに含みたいブランドにチェックを入れてください。</p>
     <div id="brands"></div>
-    <button onclick="closeBrandsDialog()">閉じる</button>
+    <button onclick="onCloseBrands()">閉じる</button>
   </div>
 </dialog>
 </body>
