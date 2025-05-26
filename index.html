@@ -62,7 +62,6 @@
 
     let config = new Config();
     let shops = null;
-    let choices = null;
     let rotateId = null;
 
     // Initialization (load shops.json and config)
@@ -148,7 +147,7 @@
     }
 
     function onRotate() {
-      choices = [];
+      let choices = [];
       if (!!config.currentlySelectedBrands()) {
         const shop = getCurrentShop();
         config.currentlySelectedBrands().forEach(brand => {
