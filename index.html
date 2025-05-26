@@ -5,10 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ルーレット</title>
   <script>
-    let shops = null;
-    let choices = null;
-    let brands = null;
-    let rotateId = null;
+    class Config {
+      constructor() {
+        this.shop = 0;
+        this.n = 'ランダム';
+        this.brands = {};
+        this.version = null;
+      }
+
+      load(j) {
+        this.shop = j.shop;
+        this.n = j.n;
+        this.brands = j.brands;
+        this.version = j.version;
+      }
+
+       save() {
+         localStorage.setItem('config', JSON.stringify(this));
+       }
+    }
 
     class Flavor {
       constructor({brand, name}) {
@@ -24,29 +39,66 @@
       }
     }
 
-    fetch('./shops.json')
-      .then(response => {
-        if (!response.ok) throw new Error('HTTP error ' + response.status);
-        return response.json();
-      })
-      .then(j => {
-        shops = j.map(e => new Shop(e));
+    class Shops {
+      constructor({version, shops}) {
+        this.version = version;
+        this.shops = shops.map(v => new Shop(v));
+      }
+    }
 
-        shops.forEach((shop, i) => {
-          console.debug(`店舗: ${shop.name}`)
+    let config = new Config();
+    let shops = null;
+    let choices = null;
+    let rotateId = null;
 
-          const option = document.createElement("option");
-          option.value = i;
-          option.textContent = shop.name;
-          document.querySelector("#shop").appendChild(option);
+    window.addEventListener('load', () => {
+      fetch('./shops.json')
+        .then(response => {
+          if (!response.ok) throw new Error('HTTP error ' + response.status);
+          return response.json();
         })
+        .then(j => {
+          // Load the fetched JSON into shops var
+          //shops = j.map(e => new Shop(e));
+          shops = new Shops(j);
 
-        document.querySelector("#loading").hidden = true;
-        document.querySelector("#roulette").hidden = false;
-      })
-      .catch(error => {
-        console.error('Fetch error:', error);
-      });
+          shops.shops.forEach((shop, i) => {
+            console.debug(`店舗: ${shop.name}`)
+
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = shop.name;
+            document.querySelector("#shop").appendChild(option);
+          })
+
+          // Load last state into config.
+          // Invalidate the config if shop list has been updated.
+          const c = JSON.parse(localStorage.getItem('config'));
+          if (c !== null && !!c.version && c.version === shops.version) {
+            config.load(c);
+          } else {
+            config.version = shops.version;
+            config.save();
+          }
+
+          // Restore the last used shop
+          const s = document.querySelector('#shop');
+          s.selectedIndex = config.shop;
+
+          // Restore the last selected N
+          const n = document.querySelector("#n");
+          n.selectedIndex = config.n;
+
+          // Note: flavor list check/unchecks will be restored when opening the dialog
+
+          // Show the hidden UI
+          document.querySelector("#loading").hidden = true;
+          document.querySelector("#roulette").hidden = false;
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+        });
+    });
 
     function pick(n) {
       const shuffled = choices.slice();
@@ -81,25 +133,32 @@
     function onSelectingShop() {
       onStop();
       document.querySelector('#f').innerHTML = "???<br/>???<br/>???<br/>???";
-      brands = null;
+
+      const se = document.querySelector("#shop");
+      config.shop = se.selectedIndex;
+      config.save();
     }
 
-    function getCurrentShop() {
-      const se = document.querySelector("#shop");
-      const s = parseInt(se.options[se.selectedIndex].value);
-      return shops[s];
+    function onSelectingN() {
+      const n = document.querySelector("#n");
+      config.n = n.selectedIndex;
+      config.save();
     }
 
     function onRotate() {
       choices = [];
-      getCurrentShop().flavors.forEach(flavor => {
-        if (!!brands) {
-          if (!brands.has(flavor.brand)) {
-            return;
-          }
-        }
-        choices.push(flavor);
-      });
+      if (!!config.brands[config.shop]) {
+        const shop = getCurrentShop();
+        config.brands[config.shop].forEach(brand => {
+          shop.flavors.forEach(flavor => {
+            if (flavor.brand === brand) {
+              choices.push(flavor);
+            }
+          });
+        });
+      } else {
+        getCurrentShop().flavors.forEach(flavor => choices.push(flavor))
+      }
 
       if (!!rotateId) {
         return;
@@ -125,17 +184,28 @@
       onStop();
 
       brandsElem.innerHTML = uniqueBrands
-        .map(b => `<label><input type="checkbox" name="brand" value="${b}" ${brands === null || (!!brands && brands.has(b)) ? "checked" : ""}> ${b}</label>`)
+        .map(b => {
+          const firstPick = config.brands[config.shop] == null;
+          const pickedByUser = !firstPick && config.brands[config.shop].includes(b);
+          const checked = firstPick || pickedByUser ? "checked" : "";
+          return `<label><input type="checkbox" name="brand" value="${b}" ${checked}> ${b}</label>`
+        })
         .join('<br>');
 
       document.querySelector('#brands-dialog').showModal();
     }
 
     function closeBrandsDialog() {
-      brands = new Set(Array.from(document.querySelectorAll('input[name="brand"]:checked'), el => el.value));
-      console.debug(brands);
+      config.brands[config.shop] = Array.from(new Set(Array.from(document.querySelectorAll('input[name="brand"]:checked'), el => el.value)));
+      config.save();
+      console.debug(config.brands);
       document.querySelector('#brands-dialog').close();
     }
+
+    function getCurrentShop() {
+      return shops.shops[config.shop];
+    }
+
   </script>
   <style>
     @property --global-width {
@@ -264,7 +334,7 @@
       </div>
       <div id="config-values">
         <select id="shop" onchange="onSelectingShop()"></select>
-        <select id="n">
+        <select id="n" onchange="onSelectingN()">
           <option>1</option>
           <option>2</option>
           <option>3</option>
