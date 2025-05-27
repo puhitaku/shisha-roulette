@@ -22,13 +22,13 @@
         this.version = j.version;
       }
 
-       save() {
-         localStorage.setItem('config', JSON.stringify(this));
-       }
+      save() {
+        localStorage.setItem('config', JSON.stringify(this));
+      }
 
-       currentlySelectedBrands() {
-         return config.brands[config.shop];
-       }
+      currentlySelectedBrands() {
+        return config.brands[config.shop];
+      }
     }
 
     class Flavor {
