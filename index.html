@@ -39,8 +39,9 @@
     }
 
     class Shop {
-      constructor({shopName, flavors}) {
+      constructor({shopName, id, flavors}) {
         this.name = shopName;
+        this.id = id;
         this.flavors = flavors.map(f => new Flavor(f));
       }
     }
@@ -119,6 +120,21 @@
               dialog.close();
             }
           })
+
+          // If the URL has a shop ID, choose the shop and redirect to the plain URL
+          const url = new URL(window.location.href);
+          const id = url.searchParams.get('shop-id');
+          if (!!id) {
+            shops.shops.forEach((shop, i) => {
+              if (shop.id === id) {
+                s.selectedIndex = i;
+                config.shop = i;
+                config.save();
+              }
+            })
+            url.searchParams.delete('shop-id');
+            window.history.pushState({}, '', url);
+          }
 
           // Show the hidden UI
           document.querySelector("#loading").hidden = true;

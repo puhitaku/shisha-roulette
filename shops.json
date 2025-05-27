@@ -3,6 +3,7 @@
   "shops": [
     {
       "shopName": "岡山県・Shisha Cafe 廻煙",
+      "id": "01JW834AJ86RKTJNXGF9S0VGWQ",
       "flavors": [
         {"brand": "Afzal", "name": "ライチ"},
         {"brand": "Afzal", "name": "アールグレイ"},
@@ -87,6 +88,7 @@
     },
     {
       "shopName": "岡山県・nostalgic Avant-garde 別館無類",
+      "id": "01JW834AJ8BZ5W402MBFKC2T44",
       "flavors": [
         {"brand": "Afzal", "name": "マサラチャイ"},
         {"brand": "Afzal", "name": "アールグレイ"},
@@ -205,6 +207,7 @@
     },
     {
       "shopName": "岡山県・ANGLE SPORTS BAR",
+      "id": "01JW834AJ8CH5QAH71FD5X9MEY",
       "flavors": [
         {"brand": "Afzal", "name": "レモングラス"},
         {"brand": "Afzal", "name": "ヘーゼルナッツチョコレート"},
@@ -237,6 +240,7 @@
     },
     {
       "shopName": "岡山県・OKAYAMA SHISHA LOUNGE 類人煙",
+      "id": "01JW834AJ97CK7ADEKJ22ZZZ1Y",
       "flavors": [
         {"brand": "Afzal", "name": "ライチ"},
         {"brand": "Afzal", "name": "アールグレイ"},
@@ -358,6 +362,7 @@
     },
     {
       "shopName": "大分県・Cafe&Bar Oita Shisha",
+      "id": "01JW834AJ955VPKZXC6PBTSBYR",
       "flavors": [
         {"brand": "Afzal", "name": "ライチ"},
         {"brand": "Afzal", "name": "パッションフルーツ"},
